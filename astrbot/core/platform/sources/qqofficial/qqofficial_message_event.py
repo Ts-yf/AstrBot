@@ -1,5 +1,6 @@
 import botpy
 import botpy.message
+import botpy.manage
 import botpy.types
 import botpy.types.message
 import asyncio
@@ -78,6 +79,8 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                 botpy.message.GroupMessage,
                 botpy.message.DirectMessage,
                 botpy.message.C2CMessage,
+                botpy.manage.GroupManageEvent,
+                botpy.manage.C2CManageEvent
             ),
         )
 
@@ -109,6 +112,18 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                 ret = await self.bot.api.post_group_message(
                     group_openid=source.group_openid, **payload
                 )
+            case botpy.manage.GroupManageEvent:
+                payload["msg_id"] = ""
+                payload["event_id"] = source.event_id
+                if image_base64:
+                    media = await self.upload_group_and_c2c_image(
+                        image_base64, 1, group_openid=source.group_openid
+                    )
+                    payload["media"] = media
+                    payload["msg_type"] = 7
+                ret = await self.bot.api.post_group_message(
+                    group_openid=source.group_openid, **payload
+                )
             case botpy.message.C2CMessage:
                 if image_base64:
                     media = await self.upload_group_and_c2c_image(
@@ -125,6 +140,26 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                 else:
                     ret = await self.post_c2c_message(
                         openid=source.author.user_openid, **payload
+                    )
+                logger.debug(f"Message sent to C2C: {ret}")
+            case botpy.manage.C2CManageEvent:
+                payload["msg_id"] = ""
+                payload["event_id"] = source.event_id
+                if image_base64:
+                    media = await self.upload_group_and_c2c_image(
+                        image_base64, 1, openid=source.openid
+                    )
+                    payload["media"] = media
+                    payload["msg_type"] = 7
+                if stream:
+                    ret = await self.post_c2c_message(
+                        openid=source.openid,
+                        **payload,
+                        stream=stream,
+                    )
+                else:
+                    ret = await self.post_c2c_message(
+                        openid=source.openid, **payload
                     )
                 logger.debug(f"Message sent to C2C: {ret}")
             case botpy.message.Message:

@@ -8,14 +8,18 @@ from astrbot.core.platform.message_type import MessageType
 class EventMessageType(enum.Flag):
     GROUP_MESSAGE = enum.auto()
     PRIVATE_MESSAGE = enum.auto()
+    GROUP_ADD = enum.auto()
+    FRIEND_ADD = enum.auto()
     OTHER_MESSAGE = enum.auto()
-    ALL = GROUP_MESSAGE | PRIVATE_MESSAGE | OTHER_MESSAGE
+    ALL = GROUP_MESSAGE | PRIVATE_MESSAGE | OTHER_MESSAGE | GROUP_ADD | FRIEND_ADD
 
 
 MESSAGE_TYPE_2_EVENT_MESSAGE_TYPE = {
     MessageType.GROUP_MESSAGE: EventMessageType.GROUP_MESSAGE,
     MessageType.FRIEND_MESSAGE: EventMessageType.PRIVATE_MESSAGE,
     MessageType.OTHER_MESSAGE: EventMessageType.OTHER_MESSAGE,
+    MessageType.GROUP_ADD: EventMessageType.GROUP_ADD,
+    MessageType.FRIEND_ADD: EventMessageType.FRIEND_ADD
 }
 
 

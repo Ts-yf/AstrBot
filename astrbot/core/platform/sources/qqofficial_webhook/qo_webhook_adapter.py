@@ -2,6 +2,7 @@ import botpy
 import logging
 import asyncio
 import botpy.message
+import botpy.manage
 import botpy.types
 import botpy.types.message
 
@@ -59,6 +60,52 @@ class botClient(Client):
             message, MessageType.FRIEND_MESSAGE
         )
         abm.session_id = abm.sender.user_id
+        self._commit(abm)
+
+    def _commit(self, abm: AstrBotMessage):
+        self.platform.commit_event(
+            QQOfficialWebhookMessageEvent(
+                abm.message_str, abm, self.platform.meta(), abm.session_id, self
+            )
+        )
+
+    # 收到 添加好友 消息
+    async def on_friend_add(self, message: botpy.manage.C2CManageEvent):
+        from typing import List
+        from astrbot.api.message_components import BaseMessageComponent, Plain
+        from astrbot.api.platform import MessageMember
+        abm = AstrBotMessage()
+        abm.type = MessageType.FRIEND_ADD
+        abm.sender = MessageMember(message.openid,message.openid)
+        abm.timestamp = message.timestamp
+        abm.raw_message = message
+        abm.message_id = message.event_id
+        msg: List[BaseMessageComponent] = []
+        abm.message_str = f"[添加好友]({message.openid})"
+        msg.append(Plain(abm.message_str))
+        abm.message = msg
+        abm.session_id = abm.sender.user_id
+        abm.self_id = "qq_official"
+        self._commit(abm)
+   
+    # 收到 添加群 消息
+    async def on_group_add_robot(self, message: botpy.manage.GroupManageEvent):
+        from typing import List
+        from astrbot.api.message_components import BaseMessageComponent, Plain
+        from astrbot.api.platform import MessageMember
+        abm = AstrBotMessage()
+        abm.type = MessageType.GROUP_ADD
+        abm.sender = MessageMember(message.op_member_openid,message.op_member_openid)
+        abm.timestamp = message.timestamp
+        abm.raw_message = message
+        abm.group_id = message.group_openid
+        abm.message_id = message.event_id
+        msg: List[BaseMessageComponent] = []
+        abm.message_str = f"[添加群]({message.op_member_openid})"
+        msg.append(Plain(abm.message_str))
+        abm.message = msg
+        abm.session_id = abm.sender.user_id
+        abm.self_id = "qq_official"
         self._commit(abm)
 
     def _commit(self, abm: AstrBotMessage):
