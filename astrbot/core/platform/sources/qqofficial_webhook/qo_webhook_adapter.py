@@ -81,7 +81,26 @@ class botClient(Client):
         abm.raw_message = message
         abm.message_id = message.event_id
         msg: List[BaseMessageComponent] = []
-        abm.message_str = f"[添加好友]({message.openid})"
+        abm.message_str = f"[好友添加]({message.openid})"
+        msg.append(Plain(abm.message_str))
+        abm.message = msg
+        abm.session_id = abm.sender.user_id
+        abm.self_id = "qq_official"
+        self._commit(abm)
+   
+    # 收到 删除好友 消息
+    async def on_friend_add(self, message: botpy.manage.C2CManageEvent):
+        from typing import List
+        from astrbot.api.message_components import BaseMessageComponent, Plain
+        from astrbot.api.platform import MessageMember
+        abm = AstrBotMessage()
+        abm.type = MessageType.FRIEND_DEL
+        abm.sender = MessageMember(message.openid,message.openid)
+        abm.timestamp = message.timestamp
+        abm.raw_message = message
+        abm.message_id = message.event_id
+        msg: List[BaseMessageComponent] = []
+        abm.message_str = f"[好友删除]({message.openid})"
         msg.append(Plain(abm.message_str))
         abm.message = msg
         abm.session_id = abm.sender.user_id
@@ -101,7 +120,27 @@ class botClient(Client):
         abm.group_id = message.group_openid
         abm.message_id = message.event_id
         msg: List[BaseMessageComponent] = []
-        abm.message_str = f"[添加群]({message.op_member_openid})"
+        abm.message_str = f"[群添加]({message.op_member_openid})"
+        msg.append(Plain(abm.message_str))
+        abm.message = msg
+        abm.session_id = abm.sender.user_id
+        abm.self_id = "qq_official"
+        self._commit(abm)
+
+    # 收到 退出群 消息
+    async def on_group_del_robot(self, message: botpy.manage.GroupManageEvent):
+        from typing import List
+        from astrbot.api.message_components import BaseMessageComponent, Plain
+        from astrbot.api.platform import MessageMember
+        abm = AstrBotMessage()
+        abm.type = MessageType.GROUP_DEL
+        abm.sender = MessageMember(message.op_member_openid,message.op_member_openid)
+        abm.timestamp = message.timestamp
+        abm.raw_message = message
+        abm.group_id = message.group_openid
+        abm.message_id = message.event_id
+        msg: List[BaseMessageComponent] = []
+        abm.message_str = f"[群减少]({message.op_member_openid})"
         msg.append(Plain(abm.message_str))
         abm.message = msg
         abm.session_id = abm.sender.user_id

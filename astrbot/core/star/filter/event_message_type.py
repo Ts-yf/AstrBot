@@ -10,8 +10,10 @@ class EventMessageType(enum.Flag):
     PRIVATE_MESSAGE = enum.auto()
     GROUP_ADD = enum.auto()
     FRIEND_ADD = enum.auto()
+    GROUP_DEL = enum.auto()
+    FRIEND_DEL = enum.auto()
     OTHER_MESSAGE = enum.auto()
-    ALL = GROUP_MESSAGE | PRIVATE_MESSAGE | OTHER_MESSAGE | GROUP_ADD | FRIEND_ADD
+    ALL = GROUP_MESSAGE | PRIVATE_MESSAGE | OTHER_MESSAGE | GROUP_ADD | FRIEND_ADD | GROUP_DEL | FRIEND_DEL
 
 
 MESSAGE_TYPE_2_EVENT_MESSAGE_TYPE = {
@@ -19,7 +21,9 @@ MESSAGE_TYPE_2_EVENT_MESSAGE_TYPE = {
     MessageType.FRIEND_MESSAGE: EventMessageType.PRIVATE_MESSAGE,
     MessageType.OTHER_MESSAGE: EventMessageType.OTHER_MESSAGE,
     MessageType.GROUP_ADD: EventMessageType.GROUP_ADD,
-    MessageType.FRIEND_ADD: EventMessageType.FRIEND_ADD
+    MessageType.FRIEND_ADD: EventMessageType.FRIEND_ADD,
+    MessageType.GROUP_DEL: EventMessageType.GROUP_DEL,
+    MessageType.FRIEND_DEL: EventMessageType.FRIEND_DEL
 }
 
 
