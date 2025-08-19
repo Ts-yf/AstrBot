@@ -64,6 +64,7 @@ class ComponentType(Enum):
     Json = "Json"
     CardImage = "CardImage"
     TTS = "TTS"
+    Ark = "Ark"
     Unknown = "Unknown"
 
     WechatEmoji = "WechatEmoji"  # Wechat 下的 emoji 表情包
@@ -701,6 +702,13 @@ class CardImage(BaseMessageComponent):
     def fromFileSystem(path, **_):
         return CardImage(file=f"file:///{os.path.abspath(path)}", **_)
 
+class Ark(BaseMessageComponent):
+    type: ComponentType = "ark"
+    data: T.Union[str, dict]
+
+    def __init__(self, data, **_):
+        super().__init__(data=data, **_)
+
 
 class TTS(BaseMessageComponent):
     type: ComponentType = "TTS"
@@ -891,4 +899,5 @@ ComponentTypes = {
     "unknown": Unknown,
     "file": File,
     "WechatEmoji": WechatEmoji,
+    "ark": Ark
 }

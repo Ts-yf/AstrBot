@@ -7,7 +7,7 @@ import asyncio
 from astrbot.core.utils.io import file_to_base64, download_image_by_url
 from astrbot.api.event import AstrMessageEvent, MessageChain
 from astrbot.api.platform import AstrBotMessage, PlatformMetadata
-from astrbot.api.message_components import Plain, Image
+from astrbot.api.message_components import *
 from botpy import Client
 from botpy.http import Route
 from astrbot.api import logger
@@ -88,9 +88,10 @@ class QQOfficialMessageEvent(AstrMessageEvent):
             plain_text,
             image_base64,
             image_path,
+            ark_data
         ) = await QQOfficialMessageEvent._parse_to_qqofficial(self.send_buffer)
 
-        if not plain_text and not image_base64 and not image_path:
+        if not plain_text and not image_base64 and not image_path and not ark_data:
             return
 
         payload = {
@@ -109,6 +110,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                     )
                     payload["media"] = media
                     payload["msg_type"] = 7
+                if ark_data:
+                    payload["ark"] = ark_data
+                    payload["msg_type"] = 3
                 ret = await self.bot.api.post_group_message(
                     group_openid=source.group_openid, **payload
                 )
@@ -121,6 +125,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                     )
                     payload["media"] = media
                     payload["msg_type"] = 7
+                if ark_data:
+                    payload["ark"] = ark_data
+                    payload["msg_type"] = 3
                 ret = await self.bot.api.post_group_message(
                     group_openid=source.group_openid, **payload
                 )
@@ -131,6 +138,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                     )
                     payload["media"] = media
                     payload["msg_type"] = 7
+                if ark_data:
+                    payload["ark"] = ark_data
+                    payload["msg_type"] = 3
                 if stream:
                     ret = await self.post_c2c_message(
                         openid=source.author.user_openid,
@@ -151,6 +161,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                     )
                     payload["media"] = media
                     payload["msg_type"] = 7
+                if ark_data:
+                    payload["ark"] = ark_data
+                    payload["msg_type"] = 3
                 if stream:
                     ret = await self.post_c2c_message(
                         openid=source.openid,
@@ -218,6 +231,7 @@ class QQOfficialMessageEvent(AstrMessageEvent):
     ) -> message.Message:
         payload = locals()
         payload.pop("self", None)
+        logger.debug(f"post_c2c_message: {payload}")
         route = Route("POST", "/v2/users/{openid}/messages", openid=openid)
         return await self.bot.api._http.request(route, json=payload)
 
@@ -226,7 +240,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
         plain_text = ""
         image_base64 = None  # only one img supported
         image_file_path = None
+        ark_data = None
         for i in message.chain:
+            logger.debug(f"qq_official 处理 {i.type}")
             if isinstance(i, Plain):
                 plain_text += i.text
             elif isinstance(i, Image) and not image_base64:
@@ -241,6 +257,8 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                 else:
                     image_base64 = file_to_base64(i.file)
                 image_base64 = image_base64.removeprefix("base64://")
+            elif isinstance(i, Ark):
+                ark_data = i.data
             else:
                 logger.debug(f"qq_official 忽略 {i.type}")
-        return plain_text, image_base64, image_file_path
+        return plain_text, image_base64, image_file_path, ark_data

@@ -2,13 +2,7 @@ import enum
 
 from typing import List, Optional, Union, AsyncGenerator
 from dataclasses import dataclass, field
-from astrbot.core.message.components import (
-    BaseMessageComponent,
-    Plain,
-    Image,
-    At,
-    AtAll,
-)
+from astrbot.core.message.components import *
 from typing_extensions import deprecated
 
 
@@ -26,6 +20,34 @@ class MessageChain:
     use_t2i_: Optional[bool] = None  # None 为跟随用户设置
     type: Optional[str] = None
     """消息链承载的消息的类型。可选，用于让消息平台区分不同业务场景的消息链。"""
+    
+    def ark(self, data: dict):
+        """添加一条 Ark 消息到消息链 `chain` 中。
+
+        Example:
+            ark = {
+                'template_id': 23,
+                'kv': [
+                    {'key': '#DESC#', 'value': '描述'},
+                    {'key': '#PROMPT#', 'value': '外显'},
+                    {
+                        'key': '#LIST#',
+                        'obj': [
+                            {
+                                'obj_kv': [
+                                    {'key': 'desc', 'value': '文本'},
+                                    {'key': 'link', 'value': 'https://example.com'}
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+            CommandResult().ark(ark)
+
+        """
+        self.chain.append(Ark(data))
+        return self
 
     def message(self, message: str):
         """添加一条文本消息到消息链 `chain` 中。
