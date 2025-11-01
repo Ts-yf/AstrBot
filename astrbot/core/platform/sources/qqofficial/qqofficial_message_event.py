@@ -88,10 +88,11 @@ class QQOfficialMessageEvent(AstrMessageEvent):
             plain_text,
             image_base64,
             image_path,
-            ark_data
+            ark_data,
+            md_data
         ) = await QQOfficialMessageEvent._parse_to_qqofficial(self.send_buffer)
 
-        if not plain_text and not image_base64 and not image_path and not ark_data:
+        if not plain_text and not image_base64 and not image_path and not ark_data and not md_data:
             return
 
         payload = {
@@ -113,6 +114,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                 if ark_data:
                     payload["ark"] = ark_data
                     payload["msg_type"] = 3
+                if md_data:
+                    payload["markdown"] = md_data
+                    payload["msg_type"] = 2
                 ret = await self.bot.api.post_group_message(
                     group_openid=source.group_openid, **payload
                 )
@@ -128,6 +132,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                 if ark_data:
                     payload["ark"] = ark_data
                     payload["msg_type"] = 3
+                if md_data:
+                    payload["markdown"] = md_data
+                    payload["msg_type"] = 2
                 ret = await self.bot.api.post_group_message(
                     group_openid=source.group_openid, **payload
                 )
@@ -141,6 +148,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                 if ark_data:
                     payload["ark"] = ark_data
                     payload["msg_type"] = 3
+                if md_data:
+                    payload["markdown"] = md_data
+                    payload["msg_type"] = 2
                 if stream:
                     ret = await self.post_c2c_message(
                         openid=source.author.user_openid,
@@ -164,6 +174,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                 if ark_data:
                     payload["ark"] = ark_data
                     payload["msg_type"] = 3
+                if md_data:
+                    payload["markdown"] = md_data
+                    payload["msg_type"] = 2
                 if stream:
                     ret = await self.post_c2c_message(
                         openid=source.openid,
@@ -241,6 +254,7 @@ class QQOfficialMessageEvent(AstrMessageEvent):
         image_base64 = None  # only one img supported
         image_file_path = None
         ark_data = None
+        md_data = None
         for i in message.chain:
             logger.debug(f"qq_official 处理 {i.type}")
             if isinstance(i, Plain):
@@ -259,6 +273,8 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                 image_base64 = image_base64.removeprefix("base64://")
             elif isinstance(i, Ark):
                 ark_data = i.data
+            elif isinstance(i, Markdown):
+                md_data = i.data
             else:
                 logger.debug(f"qq_official 忽略 {i.type}")
-        return plain_text, image_base64, image_file_path, ark_data
+        return plain_text, image_base64, image_file_path, ark_data, md_data

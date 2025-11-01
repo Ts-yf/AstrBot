@@ -34,6 +34,7 @@ class RespondStage(Stage):
         Comp.Nodes: lambda comp: bool(comp.nodes),  # 多个转发节点
         Comp.File: lambda comp: bool(comp.file_ or comp.url),
         Comp.Ark: lambda comp: bool(comp.data),
+        Comp.Markdown: lambda comp: bool(comp.data),
         Comp.WechatEmoji: lambda comp: comp.md5 is not None,  # 微信表情
     }
 

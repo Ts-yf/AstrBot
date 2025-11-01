@@ -21,6 +21,58 @@ class MessageChain:
     type: Optional[str] = None
     """消息链承载的消息的类型。可选，用于让消息平台区分不同业务场景的消息链。"""
     
+    def markdown(self, data: dict):
+        """添加一条 Markdown 消息到消息链 `chain` 中。
+
+        Example:
+            data = {
+                "content": "# 标题 \n## 简介很开心 \n内容[🔗腾讯](https://www.qq.com)"
+            }
+            CommandResult().markdown(data)
+            
+            data = {
+                "custom_template_id": "101993071_1658748972",
+                "params": [{
+                        "key": "title",
+                        "values": ["标题"]
+                    },
+                    {
+                        "key": "image",
+                        "values": [
+                            "https://resource5-1255303497.cos.ap-guangzhou.myqcloud.com/abcmouse_word_watch/other/mkd_img.png"
+                        ]
+                    },
+                    {
+                        "key": "para1",
+                        "values": ["段落1"]
+                    },
+                    {
+                        "key": "para2",
+                        "values": ["段落2"]
+                    },
+                    {
+                        "key": "desc",
+                        "values": ["简介"]
+                    },
+                    {
+                        "key": "content",
+                        "values": ["在这个子频道非常开心"]
+                    },
+                    {
+                        "key": "link_introduction",
+                        "values": ["链接介绍"]
+                    },
+                    {
+                        "key": "link",
+                        "values": ["https://www.qq.com"]
+                    }
+                ]
+            }
+            CommandResult().markdown(data)
+
+        """
+        self.chain.append(Markdown(data))
+        return self
     def ark(self, data: dict):
         """添加一条 Ark 消息到消息链 `chain` 中。
 

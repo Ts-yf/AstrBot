@@ -65,6 +65,7 @@ class ComponentType(Enum):
     CardImage = "CardImage"
     TTS = "TTS"
     Ark = "Ark"
+    Markdown = "markdown"
     Unknown = "Unknown"
 
     WechatEmoji = "WechatEmoji"  # Wechat 下的 emoji 表情包
@@ -709,6 +710,13 @@ class Ark(BaseMessageComponent):
     def __init__(self, data, **_):
         super().__init__(data=data, **_)
 
+class Markdown(BaseMessageComponent):
+    type: ComponentType = "markdown"
+    data: T.Union[str, dict]
+
+    def __init__(self, data, **_):
+        super().__init__(data=data, **_)
+
 
 class TTS(BaseMessageComponent):
     type: ComponentType = "TTS"
@@ -899,5 +907,6 @@ ComponentTypes = {
     "unknown": Unknown,
     "file": File,
     "WechatEmoji": WechatEmoji,
-    "ark": Ark
+    "ark": Ark,
+    "markdown": Markdown
 }
