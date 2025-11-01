@@ -73,6 +73,30 @@ class MessageChain:
         """
         self.chain.append(Markdown(data))
         return self
+    
+    def keyboard(self, data: dict):
+        """添加一条 Keyboard 消息到消息链 `chain` 中。
+
+        Example:
+            data = {
+                "id": "123" // 申请模版后获得
+            }
+            data = {
+                "content": {
+                    "rows": [
+                        {"buttons": [{button}, {button}, {button}, {button}, {button}]},
+                        {"buttons": [{button}, {button}, {button}, {button}, {button}]},
+                        {"buttons": [{button}, {button}, {button}, {button}, {button}]},
+                        {"buttons": [{button}, {button}, {button}, {button}, {button}]},
+                        {"buttons": [{button}, {button}, {button}, {button}, {button}]},
+                    ] // 自定义按钮内容，最多可以发送5行按钮，每一行最多5个按钮。
+                }
+            }
+            CommandResult().keyboard(data)
+        """
+        self.chain.append(Keyboard(data))
+        return self
+
     def ark(self, data: dict):
         """添加一条 Ark 消息到消息链 `chain` 中。
 
