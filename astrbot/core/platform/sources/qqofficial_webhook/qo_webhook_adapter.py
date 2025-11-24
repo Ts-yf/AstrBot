@@ -89,7 +89,7 @@ class botClient(Client):
         self._commit(abm)
    
     # 收到 删除好友 消息
-    async def on_friend_add(self, message: botpy.manage.C2CManageEvent):
+    async def on_friend_del(self, message: botpy.manage.C2CManageEvent):
         from typing import List
         from astrbot.api.message_components import BaseMessageComponent, Plain
         from astrbot.api.platform import MessageMember
