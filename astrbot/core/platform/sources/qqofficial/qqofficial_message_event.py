@@ -34,7 +34,7 @@ class QQOfficialMessageEvent(AstrMessageEvent):
 
     async def send_streaming(self, generator, use_fallback: bool = False):
         """流式输出仅支持消息列表私聊"""
-        stream_payload = {"state": 1, "id": None, "index": 0, "reset": False}
+        stream_payload = {"input_state": 1, "stream_msg_id": None, "index": 0, "input_mode": "replace", "content_type": "markdown"}
         last_edit_time = 0  # 上次编辑消息的时间
         throttle_interval = 1  # 编辑消息的间隔时间 (秒)
         try:
@@ -51,14 +51,19 @@ class QQOfficialMessageEvent(AstrMessageEvent):
                     time_since_last_edit = current_time - last_edit_time
 
                     if time_since_last_edit >= throttle_interval:
+                        # 保存当前的 send_buffer
+                        current_buffer = self.send_buffer
+                        # 调用 _post_send 但不清空 buffer
                         ret = await self._post_send(stream=stream_payload)
                         stream_payload["index"] += 1
-                        stream_payload["id"] = ret["id"]
+                        stream_payload["stream_msg_id"] = ret["id"]
                         last_edit_time = asyncio.get_event_loop().time()
+                        # 恢复 send_buffer
+                        self.send_buffer = current_buffer
 
             if isinstance(source, botpy.message.C2CMessage):
                 # 结束流式对话，并且传输 buffer 中剩余的消息
-                stream_payload["state"] = 10
+                stream_payload["input_state"] = 10
                 ret = await self._post_send(stream=stream_payload)
 
         except Exception as e:
@@ -210,7 +215,9 @@ class QQOfficialMessageEvent(AstrMessageEvent):
 
         await super().send(self.send_buffer)
 
-        self.send_buffer = None
+        # 只有在非流式消息时才清空 send_buffer
+        if not stream:
+            self.send_buffer = None
 
         return ret
 
@@ -253,9 +260,45 @@ class QQOfficialMessageEvent(AstrMessageEvent):
     ) -> message.Message:
         payload = locals()
         payload.pop("self", None)
-        logger.debug(f"post_c2c_message: {payload}")
-        route = Route("POST", "/v2/users/{openid}/messages", openid=openid)
-        return await self.bot.api._http.request(route, json=payload)
+        
+        if stream:
+            # 流式消息使用不同的路由和请求体结构
+            logger.debug(f"post_c2c_stream_message: {payload}")
+            # 构建流式消息的请求体
+            content_type = stream.get("content_type", "markdown")
+            
+            # 确定要发送的内容
+            if content_type == "markdown":
+                # 如果是 markdown 类型，使用 markdown 数据或纯文本
+                if markdown:
+                    # 如果有 markdown 数据，使用其 content 字段
+                    content_raw = markdown.get("content", "")
+                else:
+                    # 否则使用纯文本，并转换为 markdown 格式
+                    content_raw = content or ""
+            else:
+                # 其他类型使用纯文本
+                content_raw = content or ""
+            
+            stream_payload = {
+                "input_mode": stream.get("input_mode", "replace"),
+                "input_state": stream.get("input_state", 1),
+                "content_type": content_type,
+                "content_raw": content_raw,
+                "event_id": event_id,
+                "msg_id": msg_id,
+                "stream_msg_id": stream.get("stream_msg_id"),
+                "msg_seq": msg_seq,
+                "index": stream.get("index", 0)
+            }
+            logger.debug(f"Stream payload: {stream_payload}")
+            route = Route("POST", "/v2/users/{openid}/stream_messages", openid=openid)
+            return await self.bot.api._http.request(route, json=stream_payload)
+        else:
+            # 普通消息
+            logger.debug(f"post_c2c_message: {payload}")
+            route = Route("POST", "/v2/users/{openid}/messages", openid=openid)
+            return await self.bot.api._http.request(route, json=payload)
 
     @staticmethod
     async def _parse_to_qqofficial(message: MessageChain):
